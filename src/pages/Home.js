@@ -3,6 +3,7 @@ import { View, FlatList, Image, ActivityIndicator, TouchableWithoutFeedback } fr
 import { useNavigation } from '@react-navigation/native';
 import { Button, Text } from 'react-native-paper';
 import AxiosApi from '../api/AxiosApi';
+import RenderImagesItem from '../components/RenderImagesItem';
 
 export default function Home() {
     const navigation = useNavigation();
@@ -45,13 +46,8 @@ export default function Home() {
         setPage(page + 1); // Increment page to load more images
     };
 
-    const renderItem = ({ item }) => (
-        <TouchableWithoutFeedback onPress={() => navigation.navigate('Details', { data: item })}>
-            <View style={{ flex: 1, aspectRatio: 1 }}>
-                <Image source={{ uri: item?.xt_image }} style={{ flex: 1 }} resizeMode="contain" />
-            </View>
-        </TouchableWithoutFeedback>
-    );
+
+
 
     return (
         <View style={{ flex: 1 }}>
@@ -64,7 +60,7 @@ export default function Home() {
                     <FlatList
                         data={images}
                         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-                        renderItem={renderItem}
+                        renderItem={({ item }) => <RenderImagesItem item={item} navigation={navigation} />}
                         keyExtractor={(item, index) => index.toString()} // Ensure key is a string
                         onEndReached={() => setisReachedAtEnd(true)}
                     />
