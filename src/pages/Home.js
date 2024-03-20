@@ -9,7 +9,8 @@ export default function Home() {
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(0);
-
+    const [hasMoreData, setHasMoreData] = useState(true);
+    const [isReachedAtEnd, setisReachedAtEnd] = useState(false)
     const fetchData = useCallback(async (offset) => {
         setLoading(true);
         try {
@@ -23,7 +24,12 @@ export default function Home() {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setImages((prevImages) => [...prevImages, ...response.data.images]); // Append new images to the existing list
+            const newImages = response.data.images;
+            setImages((prevImages) => [...prevImages, ...newImages]); // Append new images to the existing list
+
+            if (newImages.length === 0) {
+                setHasMoreData(false);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -41,7 +47,9 @@ export default function Home() {
 
     const renderItem = ({ item }) => (
         <TouchableWithoutFeedback onPress={() => navigation.navigate('Details', { data: item })}>
-            <Image source={{ uri: item?.xt_image }} style={{ aspectRatio: 1 }} />
+            <View style={{ flex: 1, aspectRatio: 1 }}>
+                <Image source={{ uri: item?.xt_image }} style={{ flex: 1 }} resizeMode="contain" />
+            </View>
         </TouchableWithoutFeedback>
     );
 
@@ -57,16 +65,22 @@ export default function Home() {
                         data={images}
                         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
                         renderItem={renderItem}
-                        keyExtractor={(item, index) => index}
-                    // onEndReached={loadMoreImages} // Load more images when reaching the end of the list
-                    // onEndReachedThreshold={0.5} // Load more when the user is at the 50% mark of the list
+                        keyExtractor={(item, index) => index.toString()} // Ensure key is a string
+                        onEndReached={() => setisReachedAtEnd(true)}
                     />
                 )}
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 }}>
-                <Text>{`Items: ${images.length}`}</Text>
-                <Button onPress={loadMoreImages} mode='text'>Load More</Button>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Button mode='text'>{`Items: ${images.length}`}</Button>
+                {
+                    isReachedAtEnd && hasMoreData && (
+                        <Button compact onPress={loadMoreImages} mode='text'>Load More</Button>
+
+                    )
+                }
             </View>
+
+
         </View>
     );
 }
